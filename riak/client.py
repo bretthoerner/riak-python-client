@@ -39,7 +39,7 @@ class RiakClient(object):
     """
     def __init__(self, host='127.0.0.1', port=8098, servers=None, prefix='riak',
                  mapred_prefix='mapred', transport_class=None, pool_class=None,
-                 client_id=None, solr_transport_class=None):
+                 client_id=None, solr_transport_class=None, timeout=None):
         """
         Construct a new ``RiakClient`` object.
 
@@ -60,6 +60,8 @@ class RiakClient(object):
         :param solr_transport_class: HTTP-based transport class for Solr interface queries
         :type transport_class: :class:`RiakHttpTransport`
         """
+        self._timeout = timeout
+
         if not pool_class:
             pool_class = RiakDeletePool
         self._pool = pool_class(servers or [(host, port)])
@@ -97,9 +99,11 @@ class RiakClient(object):
                                           port,
                                           self._prefix,
                                           self._mapred_prefix,
-                                          self._client_id)
+                                          self._client_id,
+            timeout=self._timeout)
         else:
-            transport = self._transport_class(host, port, client_id=self._client_id)
+            transport = self._transport_class(host, port, client_id=self._client_id,
+                                              timeout=self._timeout)
 
         self._transport = TransportContextManager(self, transport)
         return self._transport
